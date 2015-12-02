@@ -1,3 +1,9 @@
+# Initilization -----------------------------------------------------------
+
+# start clean by removing variables in workspace
+rm(list=ls())
+# set working directory to documents/home folder
+setwd(normalizePath("~/"))
 
 # load packages and install if nec ----------------------------------------
 
@@ -43,13 +49,8 @@ library(gridExtra)
 GET('https://osf.io/x3vu6/?action=download',
     write_disk('Data_study_A_prepared.csv', overwrite = TRUE))
 
-# Initilization -----------------------------------------------------------
-
-# start clean by removing variables in workspace
-rm(list=ls())
-# set working directory to documents/home folder
-setwd(normalizePath("~/"))
-
+GET('https://osf.io/7hzg9/?action=download',
+    write_disk('Data_study_A_prepared_international.csv', overwrite = TRUE))
 
 # Read in data from csv ---------------------------------------------------
 
@@ -128,6 +129,9 @@ data<-data[-outliers,]
 
 # Sample descriptives -----------------------------------------------------
 
+# Find them specified for asian and european in the supplement
+# that is at the bottom of this file
+
 # American educated
 sum(data$Respondent_group=="Educated")
 round(mean(data$Age[data$Respondent_group=="Educated"], na.rm=T),digits =1)
@@ -143,47 +147,6 @@ round(SD(data$Age[data$Respondent_group=="Scientists"], na.rm=T),digits =1)
 round(min(data$Age[data$Respondent_group=="Scientists"], na.rm=T),digits =1)
 round(max(data$Age[data$Respondent_group=="Scientists"], na.rm=T),digits =1)
 round(prop.table(table(data$Gender[data$Respondent_group=="Scientists"])), 2)
-# 
-# # nr of respondents assigned to the Educated Target
-# sum(data$Target=="Educated")
-# 
-# # nr of respondents assigned to the Scientist Target
-# sum(data$Target=="Scientists")
-# 
-# # nr of respondents in the Educated group judging the Educated targets
-# sum(data$Condition=="Ed_Ed")
-# 
-# # nr of respondents in the Educated group judging the Scientist targets
-# sum(data$Condition=="Ed_Sc")
-# 
-# # #nr of respondents in the 'Scientist group judging the Educated targets
-# sum(data$Condition=="Sc_Ed")
-# 
-# # #nr of respondents in the 'Scientist group judging the Scientist targets
-# sum(data$Condition=="Sc_Sc")
-
-
-# # Create useful variables for simple effects analyses and effect s --------
-# 
-# # Create variables containing n of Respondent groups and Targets 
-# 
-# levels(data$Respondent_group)
-# n_resp_group_E<-sum(data$Respondent_group=="Educated")
-# n_resp_group_S<-sum(data$Respondent_group=="Scientists")
-# 
-# levels(data$Target)
-# n_target_E<-sum(sum(data$Target=="Educated"))
-# n_target_S<-sum(sum(data$Target=="Scientists"))
-# 
-# # create subsets to be able to look at simple effects 
-# 
-# data_Educated_respondents<-subset(data, Respondent_group=="Educated")
-# data_Scientist_respondents<-subset(data, Respondent_group=="Scientists")
-# 
-# n_resp_group_E_Target_E<-sum(data_Educated_respondents$Target=="Educated")
-# n_resp_group_E_Target_S<-sum(data_Educated_respondents$Target=="Scientists")
-# n_resp_group_S_Target_E<-sum(data_Scientist_respondents$Target=="Educated")
-# n_resp_group_S_Target_S<-sum(data_Scientist_respondents$Target=="Scientists")
 
 # Scale reliabilities -----------------------------------------------------
 
@@ -772,4 +735,374 @@ multipanel_plot <- grid.arrange(arrangeGrob(Objectivity_plot_bar + theme(legend.
                                             Communality_plot_bar + theme(legend.position="none"),
                                             nrow=3),mylegend, nrow=2,heights=c(10, 3))
 
+dev.off
+
+
+# SUPPLEMENT --------------------------------------------------------------
+
+# Read in data from csv ---------------------------------------------------
+
+Data_study_A_file_name<-"Data_study_A_prepared_international.csv"
+data <-read.csv(Data_study_A_file_name)
+
+data$X<-factor(data$X)
+
+# Exclude Nobel prize laureates from analyses -----------------------------
+# (they only rated scientists + very small small group)
+
+data<-subset(data, Respondent_group!="NPW")
+data$Respondent_group<-factor(data$Respondent_group)
+
+# Exclude incomplete cases ------------------------------------------------
+
+#### Use complete cases only (as data collected through Qualtrics sample only contained complete resonses)
+incomplete<-which(!complete.cases(data[,10:27]))
+data<-data[-incomplete,]
+
+# Create variable for contintent/worldpart --------------------------------
+
+# create variable for continent/ worldpart
+
+Europe <- c(2,4,8,10,11,16,17,22,26,42,44,45,48,57,60,61,64,65,67,76,77,82,84,94,99,100,107,113,115,122,128,137,138,141,142,143,149,153,157,158,163,168,169,173,179,183,185)
+Africa <- c(3,5,19,23,27,28,30,32,33,34,38,39,41,49,53,55,56,58,62,63,66,70,71,89,96,97,98,102,103,106,109,110,116,117,119,125,126,144,150,152,154,155,160,161,165,167,175,178,182,186,580,1357)
+Asia<-c(1,13,14,20,25,36,46,75,78,79,80,81,83,86,87,88,91,92,93,95,104,105,114,118,121,127,129,130,139,140,151,156,162,164,170,171,172,174,180,184,189,192,193)
+North_America<-c(6,12,15,18,31,40,43,50,51,54,68,69,73,74,85,111,124,132,145,147,177,187)
+South_America<-c(7,21,24,35,37,52,72,134,135,166,188,191)
+Oceania<-c(9,59,90,108,112,120,123,131,133,1484,159,176,181,190)
+USA<-187
+
+worldpart <- numeric()
+
+worldpart[data$Country%in%Europe] <- "Europe"
+worldpart[data$Country%in%Africa] <- "Africa"
+worldpart[data$Country%in%Asia] <- "Asia"
+worldpart[data$Country%in%North_America] <- "North_America"
+worldpart[data$Country%in%South_America] <- "South_America"
+worldpart[data$Country%in%Oceania] <- "Oceania"
+worldpart[data$Country%in%USA] <- "USA"
+
+data$worldpart<-worldpart
+data$worldpart
+data$worldpart<-as.factor(data$worldpart)
+
+# Only use Europe, Asia and USA (other groups too small)
+data<-subset(data, worldpart=="Europe" | worldpart=="Asia" | worldpart=="USA")
+
+# Create new variable: condition ------------------------------------------
+
+data$Condition<-ifelse(data$Respondent_group=="Educated" & data$Target=="Educated", "Ed_Ed",
+                       ifelse(data$Respondent_group=="Educated" & data$Target=="Scientists", "Ed_Sc",
+                              ifelse(data$Respondent_group=="Scientists" & data$Target=="Educated", "Sc_Ed",
+                                     ifelse(data$Respondent_group=="Scientists" & data$Target=="Scientists", "Sc_Sc", "unknown"))))
+data$Condition<-as.factor(data$Condition)
+
+# Find and remove outliers per worldpart -----------------------------------------------------------
+## using Boxplot function from car package 
+
+# Remove outliers per subgroup (worldparts)
+
+## USA
+data_USA<-subset(data, worldpart=="USA")
+
+outliers<-unique(c(Boxplot(data_USA$Objectivity, data_USA$Condition,formula = Objectivity ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_USA$Rationality, data_USA$Condition,formula = Rationality ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_USA$Openness, data_USA$Condition,formula = Openness ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_USA$Intelligence, data_USA$Condition,formula = Intelligence ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_USA$Integrity, data_USA$Condition,formula = Integrity ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_USA$Communality, data_USA$Condition,formula = Communality ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5)))
+
+outliers<-as.numeric(outliers)
+
+#  Remove outliers 
+data_USA<-data_USA[-outliers,]
+
+# ASIA
+data_Asia<-subset(data, worldpart=="Asia")
+
+outliers<-unique(c(Boxplot(data_Asia$Objectivity, data_Asia$Condition,formula = Objectivity ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_Asia$Rationality, data_Asia$Condition,formula = Rationality ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_Asia$Openness, data_Asia$Condition,formula = Openness ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_Asia$Intelligence, data_Asia$Condition,formula = Intelligence ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_Asia$Integrity, data_Asia$Condition,formula = Integrity ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_Asia$Communality, data_Asia$Condition,formula = Communality ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5)))
+
+outliers<-as.numeric(outliers)
+
+#  Remove outliers 
+data_Asia<-data_Asia[-outliers,]
+
+# EUROPE
+
+data_Europe<-subset(data, worldpart=="Europe")
+
+outliers<-unique(c(Boxplot(data_Europe$Objectivity, data_Europe$Condition,formula = Objectivity ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_Europe$Rationality, data_Europe$Condition,formula = Rationality ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_Europe$Openness, data_Europe$Condition,formula = Openness ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_Europe$Intelligence, data_Europe$Condition,formula = Intelligence ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_Europe$Integrity, data_Europe$Condition,formula = Integrity ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5),
+                   
+                   Boxplot(data_Europe$Communality, data_Europe$Condition,formula = Communality ~ Ed_Ed + Ed_Sc + Sc_Ed + Sc_Sc, range=1.5)))
+
+outliers<-as.numeric(outliers)
+
+#  Remove outliers 
+data_Europe<-data_Europe[-outliers,]
+
+# merge data again -----------------------------
+# combine USA and Asia data
+
+common.names <- intersect(colnames(data_USA), colnames(data_Asia))
+data_usa_asia <- rbind(data_USA[, common.names], data_Asia[, common.names])
+
+# combine USA, Asia and Europe data
+
+common.names <- intersect(colnames(data_usa_asia), colnames(data_Europe))
+data_combined <- rbind(data_usa_asia[, common.names], data_Europe[, common.names])
+
+data<-data_combined
+
+# Sample descriptives -----------------------------------------------------
+
+# Educated (repeat)
+sum(data$Respondent_group=="Educated")
+round(mean(data$Age[data$Respondent_group=="Educated"], na.rm=T),digits =1)
+round(SD(data$Age[data$Respondent_group=="Educated"], na.rm=T),digits =1)
+round(min(data$Age[data$Respondent_group=="Educated"], na.rm=T),digits =1)
+round(max(data$Age[data$Respondent_group=="Educated"], na.rm=T),digits =1)
+round(prop.table(table(data$Gender[data$Respondent_group=="Educated"])), 2)
+# USA Scientists (repeat)
+sum(data$Respondent_group=="Scientists"& data$worldpart=="USA")
+round(mean(data$Age[data$Respondent_group=="Scientists" & data$worldpart=="USA"], na.rm=T),digits =1)
+round(SD(data$Age[data$Respondent_group=="Scientists" & data$worldpart=="USA"], na.rm=T),digits =1)
+round(min(data$Age[data$Respondent_group=="Scientists" & data$worldpart=="USA"], na.rm=T),digits =1)
+round(max(data$Age[data$Respondent_group=="Scientists" & data$worldpart=="USA"], na.rm=T),digits =1)
+round(prop.table(table(data$Gender[data$Respondent_group=="Scientists" & data$worldpart=="USA"])), 2)
+# Asia
+sum(data$Respondent_group=="Scientists"& data$worldpart=="Asia")
+round(mean(data$Age[data$Respondent_group=="Scientists" & data$worldpart=="Asia"], na.rm=T),digits =1)
+round(SD(data$Age[data$Respondent_group=="Scientists" & data$worldpart=="Asia"], na.rm=T),digits =1)
+round(min(data$Age[data$Respondent_group=="Scientists" & data$worldpart=="Asia"], na.rm=T),digits =1)
+round(max(data$Age[data$Respondent_group=="Scientists" & data$worldpart=="Asia"], na.rm=T),digits =1)
+round(prop.table(table(data$Gender[data$Respondent_group=="Scientists" & data$worldpart=="Asia"])), 2)
+# Europe
+sum(data$Respondent_group=="Scientists"& data$worldpart=="Europe")
+round(mean(data$Age[data$Respondent_group=="Scientists" & data$worldpart=="Europe"], na.rm=T),digits =1)
+round(SD(data$Age[data$Respondent_group=="Scientists" & data$worldpart=="Europe"], na.rm=T),digits =1)
+round(min(data$Age[data$Respondent_group=="Scientists" & data$worldpart=="Europe"], na.rm=T),digits =1)
+round(max(data$Age[data$Respondent_group=="Scientists" & data$worldpart=="Europe"], na.rm=T),digits =1)
+round(prop.table(table(data$Gender[data$Respondent_group=="Scientists" & data$worldpart=="Europe"])), 2)
+
+#  plots per worldpart (SCIENTISTS ONLY!) ---------------------------------
+
+# Use only scientist data
+data<-subset(data, Respondent_group=="Scientists")
+
+# OBJECTIVITY
+
+#barplot
+data_Objectivity <- summarySE(data, measurevar="Objectivity", groupvars=c("worldpart","Target"))
+
+Objectivity_plot_bar<-ggplot(data_Objectivity, aes(x=Target, y=Objectivity, fill=worldpart)) + 
+  geom_bar(position=position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin=Objectivity-ci, ymax=Objectivity+ci),
+                width=.2, 
+                position=position_dodge(.9)) +
+  ggtitle("Objectivity") +
+  ylab("Rating (1-7)") +
+  coord_cartesian(ylim=c(3.5,5.5)) +
+  scale_fill_discrete(name="Respondent group", breaks=c("USA", "Asia","Europe"), labels=c("USA Scientists", "Asian Scientists", "European Scientists"))+
+  theme(legend.title = element_text(size=12, face="bold")) +
+  theme(legend.text = element_text(size = 12)) +
+  scale_x_discrete(breaks=c("Educated", "Scientists"), labels=c("Highly-educated people", "Scientists"))+
+  theme(axis.title.x = element_text(face="bold", size=14),
+        axis.text.x  = element_text(size=12)) +
+  theme(axis.title.y = element_text(face="bold", size=14, vjust=1.5),
+        axis.text.y  = element_text(size=12)) +
+  theme(plot.title = element_text(face="bold", size=24,vjust=1.2))
+
+Objectivity_plot_bar
+
+ggsave("Objectivity_plot_bar_sc_international.jpeg", Objectivity_plot_bar,dpi=600, width = 9, height = 6)
+ggsave("Objectivity_plot_bar_sc_international.pdf", Objectivity_plot_bar,dpi=600, width = 9, height = 6)
+
+# Rationality
+
+#barplot
+data_Rationality <- summarySE(data, measurevar="Rationality", groupvars=c("worldpart","Target"))
+
+Rationality_plot_bar<-ggplot(data_Rationality, aes(x=Target, y=Rationality, fill=worldpart)) + 
+  geom_bar(position=position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin=Rationality-ci, ymax=Rationality+ci),
+                width=.2, 
+                position=position_dodge(.9)) +
+  ggtitle("Rationality") +
+  ylab("Rating (1-7)") +
+  coord_cartesian(ylim=c(4.5,6.5)) +
+  scale_fill_discrete(name="Respondent group", breaks=c("USA", "Asia","Europe"), labels=c("USA Scientists", "Asian Scientists", "European Scientists"))+
+  theme(legend.title = element_text(size=12, face="bold")) +
+  theme(legend.text = element_text(size = 12)) +
+  scale_x_discrete(breaks=c("Educated", "Scientists"), labels=c("Highly-educated people", "Scientists"))+
+  theme(axis.title.x = element_text(face="bold", size=14),
+        axis.text.x  = element_text(size=12)) +
+  theme(axis.title.y = element_text(face="bold", size=14, vjust=1.5),
+        axis.text.y  = element_text(size=12)) +
+  theme(plot.title = element_text(face="bold", size=24,vjust=1.2))
+
+Rationality_plot_bar
+
+ggsave("Rationality_plot_bar_sc_international.jpeg", Rationality_plot_bar,dpi=600, width = 9, height = 6)
+ggsave("Rationality_plot_bar_sc_international.pdf", Rationality_plot_bar,dpi=600, width = 9, height = 6)
+
+# Openness
+
+#barplot
+data_Openness <- summarySE(data, measurevar="Openness", groupvars=c("worldpart","Target"))
+
+Openness_plot_bar<-ggplot(data_Openness, aes(x=Target, y=Openness, fill=worldpart)) + 
+  geom_bar(position=position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin=Openness-ci, ymax=Openness+ci),
+                width=.2, 
+                position=position_dodge(.9)) +
+  ggtitle("Openness") +
+  ylab("Rating (1-7)") +
+  coord_cartesian(ylim=c(4.5,6.5)) +
+  scale_fill_discrete(name="Respondent group", breaks=c("USA", "Asia","Europe"), labels=c("USA Scientists", "Asian Scientists", "European Scientists"))+
+  theme(legend.title = element_text(size=12, face="bold")) +
+  theme(legend.text = element_text(size = 12)) +
+  scale_x_discrete(breaks=c("Educated", "Scientists"), labels=c("Highly-educated people", "Scientists"))+
+  theme(axis.title.x = element_text(face="bold", size=14),
+        axis.text.x  = element_text(size=12)) +
+  theme(axis.title.y = element_text(face="bold", size=14, vjust=1.5),
+        axis.text.y  = element_text(size=12)) +
+  theme(plot.title = element_text(face="bold", size=24,vjust=1.2))
+
+Openness_plot_bar
+
+ggsave("Openness_plot_bar_sc_international.jpeg", Openness_plot_bar,dpi=600, width = 9, height = 6)
+ggsave("Openness_plot_bar_sc_international.pdf", Openness_plot_bar,dpi=600, width = 9, height = 6)
+
+# Intelligence
+
+#barplot
+data_Intelligence <- summarySE(data, measurevar="Intelligence", groupvars=c("worldpart","Target"))
+
+Intelligence_plot_bar<-ggplot(data_Intelligence, aes(x=Target, y=Intelligence, fill=worldpart)) + 
+  geom_bar(position=position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin=Intelligence-ci, ymax=Intelligence+ci),
+                width=.2, 
+                position=position_dodge(.9)) +
+  ggtitle("Intelligence") +
+  ylab("Rating (1-7)") +
+  coord_cartesian(ylim=c(3.5,5.5)) +
+  scale_fill_discrete(name="Respondent group", breaks=c("USA", "Asia","Europe"), labels=c("USA Scientists", "Asian Scientists", "European Scientists"))+
+  theme(legend.title = element_text(size=12, face="bold")) +
+  theme(legend.text = element_text(size = 12)) +
+  scale_x_discrete(breaks=c("Educated", "Scientists"), labels=c("Highly-educated people", "Scientists"))+
+  theme(axis.title.x = element_text(face="bold", size=14),
+        axis.text.x  = element_text(size=12)) +
+  theme(axis.title.y = element_text(face="bold", size=14, vjust=1.5),
+        axis.text.y  = element_text(size=12)) +
+  theme(plot.title = element_text(face="bold", size=24,vjust=1.2))
+
+Intelligence_plot_bar
+
+ggsave("Intelligence_plot_bar_sc_international.jpeg", Intelligence_plot_bar,dpi=600, width = 9, height = 6)
+ggsave("Intelligence_plot_bar_sc_international.pdf", Intelligence_plot_bar,dpi=600, width = 9, height = 6)
+
+# Integrity
+
+#barplot
+data_Integrity <- summarySE(data, measurevar="Integrity", groupvars=c("worldpart","Target"))
+
+Integrity_plot_bar<-ggplot(data_Integrity, aes(x=Target, y=Integrity, fill=worldpart)) + 
+  geom_bar(position=position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin=Integrity-ci, ymax=Integrity+ci),
+                width=.2, 
+                position=position_dodge(.9)) +
+  ggtitle("Integrity") +
+  ylab("Rating (1-7)") +
+  coord_cartesian(ylim=c(4.0,6.5)) +
+  scale_fill_discrete(name="Respondent group", breaks=c("USA", "Asia","Europe"), labels=c("USA Scientists", "Asian Scientists", "European Scientists"))+
+  theme(legend.title = element_text(size=12, face="bold")) +
+  theme(legend.text = element_text(size = 12)) +
+  scale_x_discrete(breaks=c("Educated", "Scientists"), labels=c("Highly-educated people", "Scientists"))+
+  theme(axis.title.x = element_text(face="bold", size=14),
+        axis.text.x  = element_text(size=12)) +
+  theme(axis.title.y = element_text(face="bold", size=14, vjust=1.5),
+        axis.text.y  = element_text(size=12)) +
+  theme(plot.title = element_text(face="bold", size=24,vjust=1.2))
+
+Integrity_plot_bar
+
+ggsave("Integrity_plot_bar_sc_international.jpeg", Integrity_plot_bar,dpi=600, width = 9, height = 6)
+ggsave("Integrity_plot_bar_sc_international.pdf", Integrity_plot_bar,dpi=600, width = 9, height = 6)
+
+# Communality
+
+#barplot
+data_Communality <- summarySE(data, measurevar="Communality", groupvars=c("worldpart","Target"))
+
+Communality_plot_bar<-ggplot(data_Communality, aes(x=Target, y=Communality, fill=worldpart)) + 
+  geom_bar(position=position_dodge(), stat="identity") +
+  geom_errorbar(aes(ymin=Communality-ci, ymax=Communality+ci),
+                width=.2, 
+                position=position_dodge(.9)) +
+  ggtitle("Communality") +
+  ylab("Rating (1-7)") +
+  coord_cartesian(ylim=c(3.0,5.0)) +
+  scale_fill_discrete(name="Respondent group", breaks=c("USA", "Asia","Europe"), labels=c("USA Scientists", "Asian Scientists", "European Scientists"))+
+  theme(legend.title = element_text(size=12, face="bold")) +
+  theme(legend.text = element_text(size = 12)) +
+  scale_x_discrete(breaks=c("Educated", "Scientists"), labels=c("Highly-educated people", "Scientists"))+
+  theme(axis.title.x = element_text(face="bold", size=14),
+        axis.text.x  = element_text(size=12)) +
+  theme(axis.title.y = element_text(face="bold", size=14, vjust=1.5),
+        axis.text.y  = element_text(size=12)) +
+  theme(plot.title = element_text(face="bold", size=24,vjust=1.2))
+
+Communality_plot_bar
+
+ggsave("Communality_plot_bar_sc_international.jpeg", Communality_plot_bar,dpi=600, width = 9, height = 6)
+ggsave("Communality_plot_bar_sc_international.pdf", Communality_plot_bar,dpi=600, width = 9, height = 6)
+
+
+
+
+# Create MULTIPANEL plots -------------------------------------------------
+
+# multipanel plot bar plots
+# create legend for multipanel bar plot
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+
+mylegend<-g_legend(Objectivity_plot_bar)
+
+
+jpeg("multipanel_plot_study_A_bars.jpeg", width = 24, height = 30, units = "cm", quality = 100, res =300)
+multipanel_plot <- grid.arrange(arrangeGrob(Objectivity_plot_bar + theme(legend.position="none"),
+                                            Rationality_plot_bar + theme(legend.position="none"),
+                                            Openness_plot_bar + theme(legend.position="none"),
+                                            Intelligence_plot_bar + theme(legend.position="none"),
+                                            Integrity_plot_bar + theme(legend.position="none"),
+                                            Communality_plot_bar + theme(legend.position="none"),
+                                            nrow=3),mylegend, nrow=2,heights=c(10, 3))
+
 dev.off()
+
