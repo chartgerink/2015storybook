@@ -54,7 +54,8 @@ GET('https://osf.io/7hzg9/?action=download',
 
 # Read in data from csv ---------------------------------------------------
 
-data <-read.csv(Data_study_A_file_name)
+
+data <-read.csv('Data_study_A_prepared.csv')
 names(data)
 data$X<-factor(data$X)
 
